@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>SDOT Camera Viewer</title>
+    <link href="https://vjs.zencdn.net/7.11.4/video-js.css" rel="stylesheet" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/colors.css') }}">
+</head>
+<body>
+    <div id="header">
+        <h3>SDOT Camera Viewer</h3>
+    </div>
+    <div id="container">
+        <div id="videoContainer">
+            <video id="video" class="video-js vjs-default-skin" controls preload="auto">
+                <source id="videoSource" src="" type="application/x-mpegURL">
+            </video>
+        </div>
+        <div id="buttonContainer">
+            {% for neighborhood, cameras in neighborhoods.items() %}
+            <button class="neighborhood" data-camera-count="{{ cameras|length }}" onclick="toggleNeighborhood(this)">
+                {{ neighborhood }} ({{ cameras|length }})
+            </button>
+            <ul>
+                {% for camera in cameras %}
+                <li class="camera{% if camera['status'] == 'offline' %} offline{% endif %}" onclick="playStream('{{ camera['url'] }}')">{{ camera['Address'] }} ({{ camera['status'] }})</li>
+                {% endfor %}
+            </ul>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Load Video.js -->
+    <script src="https://vjs.zencdn.net/7.11.4/video.js"></script>
+
+    <script>
+        var player = videojs('video');
+
+        function playStream(url) {
+            console.log("Requesting stream:", url);
+            var videoSource = document.getElementById('videoSource');
+            videoSource.src = url;
+            player.src({ type: 'application/x-mpegURL', src: url });
+            player.load();
+            player.play().then(() => {
+                console.log("Playback started successfully");
+            }).catch((error) => {
+                console.error("Playback error:", error);
+            });
+        }
+
+        function toggleNeighborhood(button) {
+            var ul = button.nextElementSibling;
+            ul.classList.toggle('show');
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,98 @@
+@import 'colors.css';
+
+body {
+    font-family: sans-serif;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: var(--background-0); 
+    color: var(--foreground-1)
+}
+h1 {
+    font-size: 24px;
+}
+h3 {
+    font-size: 16px
+}
+p {
+    font-size: 12px;
+    margin: 2px;
+}
+#header {
+    height: 24px;
+    width: 100%;
+    padding: 10px;
+    margin: 0px;
+    background-color: var(--background-1);
+    display: flex;
+    align-items: center;
+}
+#container {
+    display: flex;
+    flex-direction: row;
+    width: 90%;
+    height: 650px;
+    margin: 24px;
+}
+#videoContainer {
+    flex: 3;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+#video {
+    width: 100%;
+    height: 100%;
+    max-width: 800px;
+}
+#buttonContainer {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0px;
+    height: 100%;
+    overflow: auto;
+}
+.neighborhood {
+    background-color: var(--background-2);
+    color: var(--foreground-3);
+    padding: 10px;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    border-radius: 5px;
+    text-align: left;
+    margin-top: 10px;
+}
+.neighborhood + ul {
+    display: none;
+    list-style-type: none;
+    padding: 0;
+}
+.neighborhood + ul.show {
+    display: block;
+    margin: 0px;
+}
+.neighborhood:hover {
+    background-color: var(--background-3);
+}
+.neighborhood:active {
+    background-color: var(--foreground-0);
+}
+.camera {
+    background-color: var(--background-3);
+    padding: 5px 10px;
+    cursor: pointer;
+}
+.camera:hover {
+    background-color: var(--background-4);
+}
+.camera:active {
+    background-color: var(--foreground-1);
+    color: var(--background-0)
+}
+.camera.offline {
+    color: var(--error)
+}
