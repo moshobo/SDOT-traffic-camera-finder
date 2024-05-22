@@ -1,6 +1,12 @@
 import requests
 import json
 
+ALL_NEIGHBORHOODS = ["All"] # This seemingly gets all neighborhoods. Doesn't seem to be documented publically
+NEIGHBORHOODS = ["Ballard", "Central", "Delridge", "Downtown", "East", "Greater Duwamish", "Lake Union", "Magnolia/Queen%20Anne", "North", "Northeast", "Northwest", "Southeast", "Southwest"]
+CAMERA_URL = "https://web.seattle.gov/Travelers/api/Map/GetCamerasByNeighborhood?neighborhood="
+STREAM_URL_START = "https://61e0c5d388c2e.streamlock.net/live/"
+STREAM_URL_END = ".stream/playlist.m3u8"
+
 def get_cameras_by_neighborhood(url, neighborhoods):
     response = {}
     
@@ -18,7 +24,7 @@ def get_cameras_by_neighborhood(url, neighborhoods):
 
     return response
 
-def get_camera_URLs(data, neighborhoods):
+def get_camera_ImageURLs(data, neighborhoods):
     response = {}
 
     for nbhd in neighborhoods:
@@ -30,45 +36,81 @@ def get_camera_URLs(data, neighborhoods):
 
     return response
 
+def convert_ImageURL(startURL, endURL, ImageURL):
+    if ImageURL[-4:] in ['.jpg', '.png']:
+        url = startURL + ImageURL[:-4] + endURL
+    else:
+        TypeError('Not a .jpg or .png file')
+    return url
 
-all_neighborhoods = ["All"] # This seemingly gets all neighborhoods. Doesn't seem to be documented publically
-neighborhoods = ["Ballard", "Central", "Delridge", "Downtown", "East", "Greater Duwamish", "Lake Union", "Magnolia/Queen%20Anne", "North", "Northeast", "Northwest", "Southeast", "Southwest"]
-# neighborhoods = ["Ballard"]
-URL = "https://web.seattle.gov/Travelers/api/Map/GetCamerasByNeighborhood?neighborhood="
-streamURL_start = "https://61e0c5d388c2e.streamlock.net:443/live/"
-streamURL_end = ".stream/playlist.m3u8"
+def get_stream_dict(data, neighborhoods):
+    camera_dict = {}
+    for nbhd in neighborhoods:
+        nbhd_data = data[nbhd]
+        # print(nbhd_data)
+        for camera in data[nbhd]:
+            streamURL = convert_ImageURL(STREAM_URL_START, STREAM_URL_END, camera)
+            status = get_camera_status(streamURL)
+            address = camera.replace('_', ' ')[:-4]
+            camera_dict[camera] = {
+                "Address": address,
+                "url": streamURL,
+                "status": status,
+                "neighborhood": nbhd
+            }
 
-camera_data = get_cameras_by_neighborhood(URL, neighborhoods)
-all_data = get_cameras_by_neighborhood(URL, all_neighborhoods)
-URL_data = get_camera_URLs(camera_data, neighborhoods)
-all_URLs = get_camera_URLs(all_data, all_neighborhoods)
+    return camera_dict
 
-# Print how many cameras there are
-camera_sum = 0
-nbhd_cams = []
-for nbhd in neighborhoods:
-    cameras = URL_data[nbhd]
-    for camera in cameras:
-        nbhd_cams.append(camera)
+def get_camera_status(url):
+    r = requests.get(url=url, verify=False)
+    if r.status_code == 200:
+        status = 'online'
+    else:
+        status = 'offline'
     
-    camera_sum += len(cameras)
-    print(f"{nbhd} has {len(cameras)} cameras")
+    return status
 
-print(f"There are {camera_sum} cameras total across Seattle")
+def group_streams_by_neighborhood(dict):
+    neighborhoods = {}
+    for name, details in dict.items():
+        neighborhood = details['neighborhood']
+        if neighborhood not in neighborhoods:
+            neighborhoods[neighborhood] = []
+        neighborhoods[neighborhood].append(details)
 
-cameras_found = 0
-no_suffix_count = 0
-for camera in all_URLs['All']:
-    if camera not in nbhd_cams:
-        cameras_found += 1
+    return neighborhoods
 
-        # Drop JPG/PNG suffix
-        if camera[-4:] in [".jpg", ".png"]:
-            filename = camera[:-4]
-        else:
-            filename = camera
-            no_suffix_count += 1
+def log_camera_stats(all_URLs, URL_data, neighborhoods):
+    # Print how many cameras there are
+    camera_sum = 0
+    nbhd_cams = []
+    if len(neighborhoods) != 0:
+        for nbhd in neighborhoods:
+            cameras = URL_data[nbhd]
+            for camera in cameras:
+                nbhd_cams.append(camera)
+            
+            camera_sum += len(cameras)
+            print(f"{nbhd} has {len(cameras)} cameras")
 
-        # print(f"New Camera found: {camera}\nURL: {streamURL_start}{filename}{streamURL_end}")
+        print(f"There are {camera_sum} cameras total across Seattle")
 
-print(f"{cameras_found} new cameras found. {no_suffix_count} did not end in jpg or png")
+    cameras_found = 0
+    no_suffix_count = 0
+    for camera in all_URLs['All']:
+        if camera not in nbhd_cams:
+            cameras_found += 1
+
+            # Drop JPG/PNG suffix
+            if camera[-4:] in [".jpg", ".png"]:
+                filename = camera[:-4]
+            else:
+                filename = camera
+                no_suffix_count += 1
+
+            # print(f"New Camera found: {camera}\nURL: {STREAM_URL_START}{filename}{STREAM_URL_END}")
+
+    print(f"{cameras_found} new cameras found. {no_suffix_count} did not end in jpg or png")
+
+if __name__ == "__main__":
+    pass
