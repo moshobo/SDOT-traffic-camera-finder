@@ -15,6 +15,9 @@
             <video id="video" class="video-js vjs-default-skin" controls preload="auto">
                 <source id="videoSource" src="" type="application/x-mpegURL">
             </video>
+            <div id="panel">
+                <p>Stream URL:</p><p id="selectedCamera">None</p>
+            </div>
         </div>
         <div id="buttonContainer">
             {% for neighborhood, cameras in neighborhoods.items() %}
@@ -23,9 +26,15 @@
             </button>
             <ul>
                 {% for camera in cameras %}
-                <li class="camera{% if camera['status'] == 'offline' %} offline{% endif %}" onclick="playStream('{{ camera['url'] }}')">{{ camera['Address'] }} ({{ camera['status'] }})</li>
+                <li class="camera{% if camera['status'] == 'offline' %} offline{% endif %}" onclick="playStream('{{ camera['url'] }}'); displayStreamURL('{{ camera['url'] }}')">
+                    {{ camera['Address'] }}
+                    {% if camera['status'] == 'offline' %}
+                    ({{ camera['status'] }})
+                    {% endif %}
+                </li>
                 {% endfor %}
             </ul>
+            
             {% endfor %}
         </div>
     </div>
@@ -52,6 +61,10 @@
         function toggleNeighborhood(button) {
             var ul = button.nextElementSibling;
             ul.classList.toggle('show');
+        }
+
+        function displayStreamURL(url) {
+            document.getElementById('selectedCamera').innerText = url;
         }
     </script>
 </body>

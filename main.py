@@ -40,14 +40,14 @@ def convert_ImageURL(startURL, endURL, ImageURL):
     if ImageURL[-4:] in ['.jpg', '.png']:
         url = startURL + ImageURL[:-4] + endURL
     else:
-        TypeError('Not a .jpg or .png file')
+        url = startURL + ImageURL + endURL
+    
     return url
 
 def get_stream_dict(data, neighborhoods):
     camera_dict = {}
     for nbhd in neighborhoods:
         nbhd_data = data[nbhd]
-        # print(nbhd_data)
         for camera in data[nbhd]:
             streamURL = convert_ImageURL(STREAM_URL_START, STREAM_URL_END, camera)
             status = get_camera_status(streamURL)
@@ -77,6 +77,10 @@ def group_streams_by_neighborhood(dict):
         if neighborhood not in neighborhoods:
             neighborhoods[neighborhood] = []
         neighborhoods[neighborhood].append(details)
+
+    # Sort by status, then name
+    for nbhd, cameras in neighborhoods.items():
+        neighborhoods[nbhd] = sorted(cameras, key=lambda x: (x['status'] == 'offline', x['Address']))
 
     return neighborhoods
 
