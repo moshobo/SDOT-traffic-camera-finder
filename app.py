@@ -10,7 +10,7 @@ def index():
     except TypeError:
         print(f"***** HERE is the Static Folder: {app.static_folder}")
     URL = "https://web.seattle.gov/Travelers/api/Map/GetCamerasByNeighborhood?neighborhood="
-    neighborhoods = ["Ballard", "Central", "Delridge", "Downtown", "East", "Greater Duwamish", "Lake Union", "Magnolia/Queen%20Anne", "North", "Northeast", "Northwest", "Southeast", "Southwest"]
+    neighborhoods = ["Ballard", "Central"] #, "Delridge", "Downtown", "East", "Greater Duwamish", "Lake Union", "Magnolia/Queen%20Anne", "North", "Northeast", "Northwest", "Southeast", "Southwest"]
     camera_data = get_cameras_by_neighborhood(URL, neighborhoods)
     URL_data = get_camera_ImageURLs(camera_data, neighborhoods)
     cameras = get_stream_dict(URL_data, neighborhoods)

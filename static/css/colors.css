@@ -1,12 +1,23 @@
 :root {
-    --background-0: #0D1321;
-    --background-1: #111A2A;
-    --background-2: #152033;
-    --background-3: #1D2D44;
-    --foreground-0: #5C88AE;
-    --foreground-1: #A2BED5;
-    --foreground-2: #C5D9E9;
-    --foreground-3: #E8F3FC;
+    --background-0: #1B2D3D;
+    --background-1: #436E93;
+    --background-2: #507BA1;
+    --background-3: #5C88AE;
+    --background-4: #8AB5DC;
+    --background-5: #AACBE7;
+    --background-6: #BED9F0;
+    --foreground-0: #1E1F24;
+    --foreground-1: #62636C;
+    --foreground-2: #80828D;
+    --foreground-3: #8B8D98;
+    --foreground-4: #B9BBC6;
+    --foreground-5: #CDCED7;
+    --foreground-6: #D8D9E0;
+    --foreground-7: #E0E1E6;
+    --foreground-8: #E7E8EC;
+    --foreground-9: #EFF0F3;
+    --foreground-10: #F9F9FB;
+    --foreground-11: #FCFCFD;
     --error: #C82C39;
     --warning: #F2C933;
 }
