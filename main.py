@@ -12,7 +12,7 @@ def get_cameras_by_neighborhood(url, neighborhoods):
     
     for nbhd in neighborhoods:
         final_url = url + nbhd
-        r = requests.get(url = final_url, verify=False)
+        r = requests.get(url = final_url)
         if r.status_code == 200:
             response_body = r.text
             response_body = response_body.replace('\\"', '"')
@@ -62,7 +62,7 @@ def get_stream_dict(data, neighborhoods):
     return camera_dict
 
 def get_camera_status(url):
-    r = requests.get(url=url, verify=False)
+    r = requests.get(url=url, timeout=0.5)
     if r.status_code == 200:
         status = 'online'
     else:
