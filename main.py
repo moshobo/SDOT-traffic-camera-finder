@@ -1,5 +1,7 @@
-import requests
 import json
+import requests
+import time
+from copy import deepcopy
 
 ALL_NEIGHBORHOODS = ["All"] # This seemingly gets all neighborhoods. Doesn't seem to be documented publically
 NEIGHBORHOODS = ["Ballard", "Central", "Delridge", "Downtown", "East", "Greater Duwamish", "Lake Union", "Magnolia/Queen%20Anne", "North", "Northeast", "Northwest", "Southeast", "Southwest"]
@@ -7,12 +9,27 @@ CAMERA_URL = "https://web.seattle.gov/Travelers/api/Map/GetCamerasByNeighborhood
 STREAM_URL_START = "https://61e0c5d388c2e.streamlock.net/live/"
 STREAM_URL_END = ".stream/playlist.m3u8"
 
+def make_get_request(url):
+    req_count = 0
+    max_req = 5
+
+    while req_count < max_req:
+        try:
+            r = requests.get(url, timeout=(5, 10))
+            return r
+        except:
+            time.sleep(5)
+            req_count += 1
+            print(f"Retrying Request to {url}: Request {req_count} of {max_req}")
+    
+    return None
+
 def get_cameras_by_neighborhood(url, neighborhoods):
     response = {}
     
     for nbhd in neighborhoods:
-        final_url = url + nbhd
-        r = requests.get(url = final_url)
+        r = make_get_request(url + nbhd)
+
         if r.status_code == 200:
             response_body = r.text
             response_body = response_body.replace('\\"', '"')
@@ -47,7 +64,6 @@ def convert_ImageURL(startURL, endURL, ImageURL):
 def get_stream_dict(data, neighborhoods):
     camera_dict = {}
     for nbhd in neighborhoods:
-        nbhd_data = data[nbhd]
         for camera in data[nbhd]:
             streamURL = convert_ImageURL(STREAM_URL_START, STREAM_URL_END, camera)
             status = get_camera_status(streamURL)
@@ -62,7 +78,8 @@ def get_stream_dict(data, neighborhoods):
     return camera_dict
 
 def get_camera_status(url):
-    r = requests.get(url=url, timeout=0.5)
+    """Determine whether camera is online by response status code"""
+    r = make_get_request(url)
     if r.status_code == 200:
         status = 'online'
     else:
@@ -83,6 +100,31 @@ def group_streams_by_neighborhood(dict):
         neighborhoods[nbhd] = sorted(cameras, key=lambda x: (x['status'] == 'offline', x['Address']))
 
     return neighborhoods
+
+def find_alt_cameras(cameras):
+    """Find new cameras by using alternate suffixes"""
+    suffixes = ["NS", "EW", "NWC", "NEC", "SEC", "SWC"]
+    alt_cameras = []
+    for camera in cameras:
+        suffixes_mod = deepcopy(suffixes)
+        no_sfx = camera.rsplit("_", 1)[0]
+
+        # remove original suffix from list
+        try:
+            original_sfx = camera.rsplit("_", 1)[1].rsplit(".", 1)[0]
+            suffixes_mod.remove(original_sfx)
+        except:
+            continue
+
+        for sfx in suffixes_mod:
+            alt_url = STREAM_URL_START + no_sfx + "_" + sfx + STREAM_URL_END
+            if get_camera_status(alt_url) == 'online':
+                final_camera = no_sfx + "_" + sfx + ".jpg"
+                if final_camera not in cameras:
+                    print(f"New Camera Found: {final_camera}")
+                    alt_cameras.append(final_camera)
+
+    return alt_cameras
 
 def log_camera_stats(all_URLs, URL_data, neighborhoods):
     # Print how many cameras there are
