@@ -20,6 +20,15 @@
             </div>
         </div>
         <div id="buttonContainer">
+            <div>
+                <div>
+                    <button id='unlistedCameras' class="actionButton">
+                        <p>Find unlisted cameras</p>
+                        <div id="spinner"></div>
+                    </button>
+                </div>
+                <div id="result"></div>
+            </div>
             {% for neighborhood, cameras in neighborhoods.items() %}
             <button class="neighborhood" data-camera-count="{{ cameras|length }}" onclick="toggleNeighborhood(this)">
                 {{ neighborhood }} ({{ cameras|length }})
@@ -66,6 +75,46 @@
         function displayStreamURL(url) {
             document.getElementById('selectedCamera').innerText = url;
         }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('unlistedCameras').addEventListener('click', function() {
+                var spinner = document.getElementById('spinner');
+                var resultDiv = document.getElementById('result');
+                
+                spinner.style.display = 'block';
+                resultDiv.innerHTML = '';
+
+                console.log("Running 'unlisted-camears' function")
+                fetch('/unlisted-cameras')
+                    .then(response => response.json())
+                    .then(data => {
+                        spinner.style.display = 'none';
+                        // resultDiv.innerHTML = data.cameras;
+                        console.log(data.cameras)
+
+                        // Clear existing content in resultDiv
+                        resultDiv.innerHTML = '';
+
+                        // Iterate over each camera in the cameras object
+                        for (const [cameraId, cameraData] of Object.entries(data.cameras)) {
+                            // Create list item element
+                            const listItem = document.createElement('li');
+                            listItem.classList.add('camera');
+                            const textNode = document.createTextNode(cameraData.Address);
+                            listItem.onclick = function() {
+                                playStream(cameraData.url);
+                                displayStreamURL(cameraData.url);
+                            };
+                            listItem.appendChild(textNode);
+                            resultDiv.appendChild(listItem);
+                        }
+                    })
+                    .catch(error => {
+                        spinner.style.display = 'none';
+                        resultDiv.innerHTML = 'Error: ' + error;
+                    });
+            });
+        });
     </script>
 </body>
 </html>
